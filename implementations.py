@@ -158,15 +158,23 @@ def ridge_regression(y, tx, lambda_):
     
     Returns:
         w: optimal weights, numpy array of shape(D,), D is the number of features.
+        loss: 
 
     >>> ridge_regression(np.array([0.1,0.2]), np.array([[2.3, 3.2], [1., 0.1]]), 0)
     array([ 0.21212121, -0.12121212])
     >>> ridge_regression(np.array([0.1,0.2]), np.array([[2.3, 3.2], [1., 0.1]]), 1)
     array([0.03947092, 0.00319628])
     """
-    l = lambda_*2*len(y)
-    return np.linalg.inv(tx.T@tx + l*np.identity(tx.shape[1]))@tx.T@y
+    N,D = tx.shape
+    
+    a = tx.T @ tx + 2 * N * lambda_ * np.identity(D)
+    b = tx.T @ y
 
-#TODO: Fix ridge_regression (fails 2 tests)
+    w = np.linalg.solve(a, b)
+    loss = compute_loss(y, tx, w)
+
+    return w, loss
+
+
 #TODO: Logistic Regression
 #TODO : Reg Logistic Regression 
