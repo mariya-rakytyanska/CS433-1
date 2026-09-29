@@ -210,7 +210,9 @@ def calculate_loss(y, tx, w):
     1.52429481
     """
     N = tx.shape[0]
-    return float(-np.sum(y*np.log(sigmoid(tx@w)) + (1-y)*np.log(1-sigmoid(tx@w)))/N)
+    sigmoid_tx_w = sigmoid(tx @ w)
+    loss = -np.sum(y * np.log(sigmoid_tx_w) + (1 - y) * np.log(1 - sigmoid_tx_w)) / N
+    return np.squeeze(loss)
 
 def calculate_gradient(y, tx, w):
     """compute the gradient of loss.
@@ -232,9 +234,14 @@ def calculate_gradient(y, tx, w):
            [ 0.2067104 ],
            [ 0.51712843]])
     """
-    pred = sigmoid(tx.dot(w))
-    grad = tx.T.dot(pred - y) * (1 / y.shape[0])
-    return grad
+    y_col = y.reshape(-1, 1)
+    w_col = w.reshape(-1, 1)
+    N = tx.shape[0]
+    
+    pred = sigmoid(tx @ w_col)
+    grad = (tx.T @ (pred - y_col)) / N
+    
+    return grad.reshape(w.shape)
 
 def logistic_regression(y, tx, initial_w, max_iters, gamma) :
     """
@@ -264,10 +271,14 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma) :
                [ 1.0590277 ],
                [ 0.80091466]])
     """
+    w = np.copy(initial_w)
+    for _ in range(max_iters):
+        grad = calculate_gradient(y, tx, w)
+        w = w - gamma * grad
+
     loss = calculate_loss(y, tx, w)
-    grad = calculate_gradient(y, tx, w)
-    w -= gamma * grad
-    return loss, w
+    return w, np.squeeze(loss)
+
 
 def reg_logistic_regression(y, tx, lambda_ ,initial_w, max_iters, gamma):
     """
@@ -300,7 +311,10 @@ def reg_logistic_regression(y, tx, lambda_ ,initial_w, max_iters, gamma):
                [0.24228716]])
     """
     
-    loss = calculate_loss(y, tx, w) + lambda_ * np.squeeze(w.T.dot(w)) 
-    gradient = calculate_gradient(y, tx, w) + 2 * lambda_ * w
-    w -= gamma * gradient
-    return loss, w
+    w = np.copy(initial_w)
+    for _ in range(max_iters):
+        gradient = calculate_gradient(y, tx, w) + 2 * lambda_ * w
+        w = w - gamma * gradient
+
+    loss = calculate_loss(y, tx, w)
+    return w, np.squeeze(loss)
