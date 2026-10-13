@@ -1,0 +1,73 @@
+\documentclass[11pt, a4paper]{article}
+\usepackage[a4paper, margin=2.5cm]{geometry}
+\usepackage[english, bidi=basic, provide=*]{babel}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{xcolor}
+
+\definecolor{primarycolor}{RGB}{30, 58, 138}
+\definecolor{accentcolor}{RGB}{15, 118, 110}
+
+\title{CS-433 Machine learning: project 1}
+\author{Erdogan Ergit, Hugo Dutheil, Mariya Rakytyanska}
+\date{}
+
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+For this project, we decided to implement a PCA since this method is often well adapted for classification problems such as what was given here. PCA consists of building a set principle components for each data entry in the training set, find the components of a the test set, and find the best matching components from the training set to match the output.
+
+\section{Pipeline Architecture and Stages}
+
+The pipeline consists of four key stages, moving from raw data preparation to final predictions:
+
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Data Cleaning and Filtering}
+    \begin{itemize}
+        \item \emph{Missing Value Thresholding:} The script checks both columns (features) and rows (samples/people) against a $75\%$ threshold. Any column or row containing too many missing ($\text{NaN}$) values is discarded to maintain data integrity.
+        \item \emph{Imputation:} Remaining missing values in the feature matrix are replaced with zeros using `np.nan\_to\_num` to prevent numerical errors during matrix multiplication and singular value decomposition.
+    \end{itemize}
+    
+    \item \textbf{Feature Scaling and Correlation Selection}
+    \begin{itemize}
+        \item \emph{Standardization:} Features are centered and scaled to have a mean of $0$ and a standard deviation of $1$, ensuring all variables contribute equally regardless of their original units.
+        \item \emph{Correlation Filter:} Absolute correlations between each feature and the target variable $y$ are computed. Only the top $30\%$ of features ($70^{\text{th}}$ percentile and above) are retained to filter out noise.
+    \end{itemize}
+    
+    \item \textbf{Dimensionality Reduction via PCA}
+    \begin{itemize}
+        \item \emph{Singular Value Decomposition (SVD):} PCA is implemented using SVD to transform the high-dimensional feature space into an orthogonal coordinate system (principal components).
+        \item \emph{Component Selection:} The pipeline selects the top $k = 15$ principal components (`scores\_train\_k` and `scores\_test\_k`) to capture the primary variance of the dataset while ignoring minor noise.
+        \item \emph{Test Set Projection:} The test dataset is scaled using the training set's mean and standard deviation, then projected into the exact same PCA coordinate space using the training rotation matrix ($\mathbf{V}^T$).
+    \end{itemize}
+    
+    \item \textbf{Batch Processing and Nearest-Neighbor Prediction}
+    \begin{itemize}
+        \item \emph{Memory-Efficient Batching:} To avoid memory overflow when computing pairwise distances between large training and test sets, the test set is split into batches of size $1000$.
+        \item \emph{Vectorized Euclidean Distance:} Distances are calculated efficiently using the expansion formula:
+        $$\|\mathbf{v} - \mathbf{w}\|^2 = \|\mathbf{v}\|^2 + \|\mathbf{w}\|^2 - 2\langle\mathbf{v}, \mathbf{w}\rangle$$
+        \item \emph{Prediction Mapping:} For each test instance, the index of the closest training sample is found using `np.argmin`, and its corresponding target value ($y$) is assigned as the prediction.
+    \end{itemize}
+\end{enumerate}
+
+\section{Summary of Parameters}
+\begin{table}[h]
+\centering
+\begin{tabular}{ll}
+\toprule
+\textbf{Parameter} & \textbf{Value / Choice} \\
+\midrule
+Missing Data Threshold & $75\%$ ($0.75$) \\
+Feature Selection Percentile & Top $30\%$ ($70^{\text{th}}$ percentile cutoff) \\
+Dimensionality ($k$) & $15$ principal components \\
+Batch Size & $1000$ samples per iteration \\
+Prediction Method & $1$-Nearest Neighbor in PCA space \\
+\bottomrule
+\end{tabular}
+\label{tab:params}
+\end{table}
+
+\end{document}

@@ -1,11 +1,17 @@
-PCA attempt using the top 70 percentile of features that correlate with y to train on.
+# Scripts
 
-The notebook is useful to try stuff without loading the data each time we run though since it was my test bench, some stuff may not really work. 
-Run the correlationTest.py file for the full output.
+## run.py
+This file contains the full pipeline allowing to produce the predictions from the training set without any user input. Simply call '''python run.py''' and the predicted values will be found at the following path: "./data/sample_submission.csv"
 
-Next steps if this is accurate:
-- Use some more supervised training for refining?
-- Using partial least squares which could also be useful
+## report.pdf
+The PDF file containing an explanation of the pipeline used.
 
-Next steps if this is inaccurate:
-- idk, some other algorithm ig. Maybe something more gradient descent like.
+## implementations.py
+This file contains the implementation of the ML methods required by the project
+
+## Other files
+Any other file was either used for workflow or debugging the main files.
+
+
+# AI disclosure
+GenAi was used for debugging, documentation, and report formatting, but was not involved in any code writing.
